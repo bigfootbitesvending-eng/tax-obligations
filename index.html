@@ -322,6 +322,7 @@
   // Single endpoint for everything: GET to read, POST with an
   // `operation` field ('create' | 'update' | 'delete') for all writes.
   const API_BASE = 'https://randysmith42.app.n8n.cloud/webhook/tax-obligations';
+  const API_KEY = 'tMEUHYnK8aCNccKZ5Zp#oMBazyR3deGM';
 
   const TYPE_LABELS = {
     state_tax: 'State tax',
@@ -346,7 +347,7 @@
   async function loadObligations() {
     setStatus('Loading…');
     try {
-      const res = await fetch(API_BASE, { method: 'GET' });
+      const res = await fetch(API_BASE, { method: 'GET', headers: { 'X-API-Key': API_KEY } });
       if (!res.ok) throw new Error('Server returned ' + res.status);
       obligations = await res.json();
       render();
@@ -359,7 +360,7 @@
   async function writeObligation(payload) {
     const res = await fetch(API_BASE, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
       body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error('Server returned ' + res.status);
