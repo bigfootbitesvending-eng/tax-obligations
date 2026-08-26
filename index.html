@@ -321,6 +321,7 @@
   // `operation` field ('create' | 'update' | 'delete') for all writes.
   const API_BASE = 'https://randysmith42.app.n8n.cloud/webhook/tax-obligations';
   const API_KEY = 'tMEUHYnK8aCNccKZ5Zp#oMBazyR3deGM';
+  const LOCATIONS_API_BASE = 'https://randysmith42.app.n8n.cloud/webhook/locations';
 
   const TYPE_LABELS = {
     state_tax: 'State tax',
@@ -340,7 +341,7 @@
     net_of_tax: 'Net of tax'
   };
 
-  const LOCATIONS = ['Ashley Green', 'Endeavor Elementary', 'Livano', 'Spry Funeral Home', 'Walden'];
+  let LOCATIONS = [];
 
   const DETAIL_OPTIONS = {
     tax: [['', 'Not set'], ['monthly', 'Monthly'], ['quarterly', 'Quarterly'], ['annual', 'Annual']],
@@ -630,11 +631,18 @@
   const addDetailSelect = document.getElementById('add-detail');
   const addDetailLabel = document.getElementById('add-detail-label');
 
-  for (const loc of LOCATIONS) {
-    const o = document.createElement('option');
-    o.value = loc;
-    o.textContent = loc;
-    addLocationSelect.appendChild(o);
+  async function loadLocations() {
+    const res = await fetch(LOCATIONS_API_BASE, { method: 'GET', headers: { 'X-API-Key': API_KEY } });
+    if (!res.ok) throw new Error('Server returned ' + res.status);
+    const data = await res.json();
+    LOCATIONS = data.map(l => l.location);
+    addLocationSelect.innerHTML = '';
+    for (const loc of LOCATIONS) {
+      const o = document.createElement('option');
+      o.value = loc;
+      o.textContent = loc;
+      addLocationSelect.appendChild(o);
+    }
   }
   populateDetailSelect(addDetailSelect, addDetailLabel, addTypeSelect.value, null);
   addTypeSelect.addEventListener('change', () => {
@@ -672,7 +680,9 @@
     }
   });
 
-  loadObligations();
+  loadLocations()
+    .then(loadObligations)
+    .catch(err => setStatus('Could not load locations — ' + err.message, true));
 </script>
 </body>
 </html>
