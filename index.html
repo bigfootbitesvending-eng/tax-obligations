@@ -102,7 +102,7 @@
     display: none;
     padding: 1.1rem;
     gap: 0.75rem;
-    grid-template-columns: 1.2fr 1fr 1fr 1.3fr 0.75fr 0.65fr auto;
+    grid-template-columns: 1.1fr 0.9fr 0.9fr 0.9fr 1.2fr 0.7fr 0.6fr auto;
     align-items: end;
   }
   #add-form.open { display: grid; }
@@ -245,6 +245,7 @@
 <main>
   <header>
     <h1>Tax &amp; Revenue Share Obligations</h1>
+    <div class="subtitle">Bigfoot Bites — the ledger behind TX-0's weekly set-aside reminder</div>
   </header>
 
   <section class="panel">
@@ -283,6 +284,13 @@
         </select>
       </div>
       <div>
+        <label for="add-revshare-basis">Rev. share basis</label>
+        <select id="add-revshare-basis">
+          <option value="">Gross (default)</option>
+          <option value="net_of_tax">Net of tax</option>
+        </select>
+      </div>
+      <div>
         <label for="add-payee">Payee</label>
         <input id="add-payee" type="text" placeholder="Alabama DOR" required>
       </div>
@@ -306,6 +314,7 @@
           <th>Location</th>
           <th>Type</th>
           <th>Filing</th>
+          <th>Rev. share basis</th>
           <th>Payee</th>
           <th class="num">Rate</th>
           <th style="text-align:center;">Active</th>
@@ -344,6 +353,11 @@
     monthly: 'Monthly',
     quarterly: 'Quarterly',
     annual: 'Annual'
+  };
+
+  const REVSHARE_BASIS_LABELS = {
+    gross: 'Gross',
+    net_of_tax: 'Net of tax'
   };
 
   let obligations = [];
@@ -412,6 +426,7 @@
         ]));
         tr.appendChild(editableCell('obligation_type', row, 'select', Object.keys(TYPE_LABELS)));
         tr.appendChild(editableFilingCell(row));
+        tr.appendChild(editableRevShareBasisCell(row));
         tr.appendChild(editableCell('payee', row, 'text'));
         tr.appendChild(editableCell('rate', row, 'rate'));
         tr.appendChild(editableActiveCell(row));
@@ -426,6 +441,8 @@
         tr.appendChild(typeTd);
         const filingTd = td('Filing', row.filing_frequency ? FILING_LABELS[row.filing_frequency] : '—', '');
         tr.appendChild(filingTd);
+        const revShareTd = td('Rev. share basis', row.revenue_share_basis ? REVSHARE_BASIS_LABELS[row.revenue_share_basis] : (row.obligation_type === 'revenue_share' ? 'Gross' : '—'), '');
+        tr.appendChild(revShareTd);
         tr.appendChild(td('Payee', row.payee, ''));
         tr.appendChild(td('Rate', (parseFloat(row.rate) * 100).toFixed(2) + '%', 'rate'));
         const activeTd = td('Active', '', 'active-cell');
@@ -460,12 +477,29 @@
     return cell;
   }
 
+  function editableRevShareBasisCell(row) {
+    const cell = document.createElement('td');
+    cell.dataset.label = 'Rev. share basis';
+    const select = document.createElement('select');
+    select.id = 'edit-revenue_share_basis-' + row.id;
+    const options = [['', 'Gross (default)'], ['net_of_tax', 'Net of tax']];
+    for (const [value, label] of options) {
+      const o = document.createElement('option');
+      o.value = value;
+      o.textContent = label;
+      if ((row.revenue_share_basis || '') === value) o.selected = true;
+      select.appendChild(o);
+    }
+    cell.appendChild(select);
+    return cell;
+  }
+
   function subtotalRow(location, activeTotal) {
     const tr = document.createElement('tr');
     tr.className = 'location-subtotal';
 
     const labelTd = document.createElement('td');
-    labelTd.colSpan = 4;
+    labelTd.colSpan = 5;
     labelTd.dataset.label = '';
     labelTd.innerHTML = '<strong>' + location + ' — total owed out (active only)</strong>';
 
@@ -571,6 +605,7 @@
       location: document.getElementById('edit-location-' + row.id).value,
       obligation_type: document.getElementById('edit-obligation_type-' + row.id).value,
       filing_frequency: document.getElementById('edit-filing_frequency-' + row.id).value || null,
+      revenue_share_basis: document.getElementById('edit-revenue_share_basis-' + row.id).value || null,
       payee: document.getElementById('edit-payee-' + row.id).value,
       rate: parseFloat(document.getElementById('edit-rate-' + row.id).value) / 100,
       active: document.getElementById('edit-active-' + row.id).checked
@@ -610,6 +645,7 @@
       location: document.getElementById('add-location').value,
       obligation_type: document.getElementById('add-type').value,
       filing_frequency: document.getElementById('add-filing').value || null,
+      revenue_share_basis: document.getElementById('add-revshare-basis').value || null,
       payee: document.getElementById('add-payee').value,
       rate: parseFloat(document.getElementById('add-rate').value) / 100,
       active: document.getElementById('add-active').checked
