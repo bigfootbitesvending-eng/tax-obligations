@@ -326,6 +326,7 @@
   <div id="status-line"></div>
 </main>
 
+<script src="/shared/config.js"></script>
 <script>
   // Set this to your n8n Cloud instance's webhook base URL once
   // "Tax Obligations — CRUD API" is pasted in and activated.
@@ -333,7 +334,6 @@
   // Single endpoint for everything: GET to read, POST with an
   // `operation` field ('create' | 'update' | 'delete') for all writes.
   const API_BASE = 'https://randysmith42.app.n8n.cloud/webhook/tax-obligations';
-  const API_KEY = 'tMEUHYnK8aCNccKZ5Zp#oMBazyR3deGM';
   const LOCATIONS_API_BASE = 'https://randysmith42.app.n8n.cloud/webhook/locations';
 
   const TYPE_LABELS = {
